@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  wallet_app:
+    build: ./
+    ports:
+      - 8080:8080
+    depends_on:
+          - db
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: wallet
+      POSTGRES_USER: wallet
+      POSTGRES_PASSWORD: wallet
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db:/var/lib/postgresql/data
