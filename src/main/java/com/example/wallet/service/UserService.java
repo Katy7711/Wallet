@@ -6,7 +6,6 @@ import com.example.wallet.entity.User;
 import com.example.wallet.repository.UserRepository;
 import jakarta.validation.ValidationException;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

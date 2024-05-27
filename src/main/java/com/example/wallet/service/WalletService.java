@@ -1,5 +1,8 @@
 package com.example.wallet.service;
 
+import static com.example.wallet.OperationType.DEPOSIT;
+import static com.example.wallet.OperationType.WITHDRAW;
+
 import com.example.wallet.OperationType;
 import com.example.wallet.RequestState;
 import com.example.wallet.controller.WalletController.CreateWalletResponse;
@@ -35,11 +38,14 @@ public class WalletService {
   }
 
 
+  @Transactional
   public WalletResponse wallet(String requestId, OperationType type, Double amount) {
+    log.info("Was invoked method for {} by wallet id {}", type, requestId);
     Wallet wallet = walletRepository.findByRequestId(UUID.fromString(requestId))
-        .orElseThrow(() -> new NotFoundException("Кошелек с id " + requestId + " не существует!"));
-    log.warn("Wallet with {} not found  ", requestId);
-    if (type == OperationType.DEPOSIT) {
+        .orElseThrow(() -> new NotFoundException("Кошелек с id " + requestId + " не существует!")
+        );
+//      log.warn("Wallet with {} not found  ", requestId);
+    if (type == DEPOSIT) {
       if (wallet.getWalletAmount() == null) {
         wallet.setWalletAmount(amount);
       } else {
@@ -51,10 +57,10 @@ public class WalletService {
         wallet.setDepositAmount(wallet.getDepositAmount() + amount);
         walletRepository.save(wallet);
       }
+      log.info("Deposit {} completed successfully, wallet {}", amount, requestId);
     }
-    log.info("Deposit for {} completed successfully, wallet {}", amount, requestId);
 
-    if (type == OperationType.WITHDRAW) {
+    if (type == WITHDRAW) {
       if (wallet.getWalletAmount() == null || wallet.getWalletAmount() < amount) {
         throw new RuntimeException("на счету недостаточно средств для снятия");
       }
@@ -66,8 +72,8 @@ public class WalletService {
         wallet.setWithdrawAmount(wallet.getWithdrawAmount() + amount);
       }
       walletRepository.save(wallet);
+      log.info("Withdraw {} completed successfully, wallet {}", amount, requestId);
     }
-    log.info("Withdraw for {} completed successfully, wallet {}", amount, requestId);
     return new WalletResponse(RequestState.SUCCESS, requestId, type, amount,
         wallet.getWalletAmount());
   }
@@ -75,7 +81,8 @@ public class WalletService {
   public CreateWalletResponse creationWallet(User user) {
     if (!userRepository.existsByLogin(user.getLogin())) {
       log.warn("user not exists");
-      throw new NotFoundException(String.format("Пользователь \"%s\" не существует!", user.getLogin()));
+      throw new NotFoundException(
+          String.format("Пользователь \"%s\" не существует!", user.getLogin()));
     }
     UUID uuid = UUID.randomUUID();
     Wallet wallet = new Wallet();
